@@ -1,7 +1,105 @@
 <!doctype html>
-<html lang="es"><meta charset="utf-8"><title>RadVol 3D</title>
-<body style="font-family:system-ui;padding:40px">
-  <h1>RadVol 3D · Servicio EN-2</h1>
-  <p>Servicio en línea. Interfaz en construcción (paso 6).</p>
-  <p><a href="/docs">Abrir la documentación interactiva</a></p>
-</body></html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RadVol 3D · Reconstrucción</title>
+  <link rel="stylesheet" href="estilos.css">
+</head>
+<body>
+<div class="shell">
+
+  <!-- Barra superior -->
+  <header class="topbar">
+    <div class="brand">
+      <div class="logo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+          <path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/>
+        </svg>
+      </div>
+      <div class="brand-txt"><b>RadVol 3D</b><span>Servicio local de reconstrucción · EN-2</span></div>
+    </div>
+    <div class="pill"><i class="dot" id="dot"></i><span id="estado-servicio">Conectando…</span></div>
+  </header>
+
+  <div class="head">
+    <div class="eyebrow">Épica 1 · Modelado tridimensional del órgano</div>
+    <h1>Nuevo estudio</h1>
+    <p>Carga las cuatro proyecciones radiográficas del paciente. El servicio local las
+       retroproyecta y devuelve el volumen 64 × 64 × 64 junto con el identificador del estudio.</p>
+  </div>
+
+  <!-- 1. Datos del estudio -->
+  <section class="card">
+    <h2>1 · Datos del estudio</h2>
+    <p class="sub">Si dejas el identificador vacío, el servicio genera uno automáticamente.</p>
+    <div class="fila">
+      <label class="campo">Identificador del estudio
+        <input id="id-estudio" placeholder="Ej.: lung_003 (opcional)" maxlength="64">
+      </label>
+      <div class="campo">Órgano
+        <div class="seg">
+          <button class="on" type="button">Pulmón</button>
+          <button type="button" disabled>Hígado <small>· Sprint 2</small></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2. Proyecciones -->
+  <section class="card">
+    <div class="barra">
+      <div>
+        <h2>2 · Proyecciones radiográficas</h2>
+        <p class="sub" style="margin:2px 0 0">Formatos: PNG de 16 bits o NPY, de 64 × 64. Haz clic o arrastra a cada casilla.</p>
+      </div>
+      <label class="btn ghost sm">Cargar las 4 a la vez
+        <input type="file" id="multi" accept=".png,.npy" multiple hidden>
+      </label>
+    </div>
+    <div class="proys" id="proys"></div>
+
+    <div class="acciones">
+      <span class="msg" id="msg">Faltan 4 proyecciones.</span>
+      <button class="btn ghost" id="btn-limpiar" type="button">Limpiar</button>
+      <button class="btn" id="btn-reconstruir" type="button" disabled>Reconstruir volumen</button>
+    </div>
+  </section>
+
+  <!-- 3. Resultado -->
+  <section class="card" id="resultado">
+    <div class="barra">
+      <div>
+        <h2>3 · Volumen reconstruido</h2>
+        <p class="sub" style="margin:2px 0 0">Cortes ortogonales del volumen devuelto por el servicio.</p>
+      </div>
+      <span class="estado">● <span id="r-estado"></span></span>
+    </div>
+
+    <div class="kpis">
+      <div class="kpi"><span>Estudio</span><b id="r-id"></b></div>
+      <div class="kpi"><span>Método</span><b id="r-metodo"></b></div>
+      <div class="kpi"><span>Volumen</span><b id="r-forma"></b></div>
+      <div class="kpi"><span>Tiempo servicio</span><b id="r-tiempo"></b></div>
+      <div class="kpi"><span>Tiempo total</span><b id="r-total"></b></div>
+    </div>
+
+    <div class="visor" id="visor"></div>
+
+    <div class="acciones">
+      <a class="btn ghost sm" id="r-descarga" download>Descargar volumen (.npy)</a>
+      <button class="btn sm" type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})">Nuevo estudio</button>
+    </div>
+
+    <details>
+      <summary>Ver respuesta del servicio (JSON)</summary>
+      <pre id="r-json"></pre>
+    </details>
+  </section>
+
+  <p class="aviso">Prototipo de investigación en validación · No constituye diagnóstico médico.</p>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
