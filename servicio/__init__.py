@@ -1,0 +1,1 @@
+"""Servicio local de reconstrucción volumétrica · EN-2 · Épica 1."""
