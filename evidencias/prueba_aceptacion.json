@@ -1,0 +1,179 @@
+{
+  "criterio": "El servicio recibe 4 imágenes y devuelve el volumen reconstruido junto con el identificador del estudio.",
+  "metodo": "retroproyeccion_simple",
+  "aprobadas": 14,
+  "total": 14,
+  "cumple_criterio": true,
+  "tiempo_medio_s": 0.023,
+  "psnr_medio_db": 14.9,
+  "casos": [
+    {
+      "caso": "lung_003",
+      "id_devuelto": "lung_003",
+      "forma": [
+        64,
+        64,
+        64
+      ],
+      "tiempo_s": 0.035,
+      "psnr_db": 14.41
+    },
+    {
+      "caso": "lung_010",
+      "id_devuelto": "lung_010",
+      "forma": [
+        64,
+        64,
+        64
+      ],
+      "tiempo_s": 0.021,
+      "psnr_db": 15.46
+    },
+    {
+      "caso": "lung_014",
+      "id_devuelto": "lung_014",
+      "forma": [
+        64,
+        64,
+        64
+      ],
+      "tiempo_s": 0.021,
+      "psnr_db": 14.8
+    },
+    {
+      "caso": "lung_015",
+      "id_devuelto": "lung_015",
+      "forma": [
+        64,
+        64,
+        64
+      ],
+      "tiempo_s": 0.023,
+      "psnr_db": 14.76
+    },
+    {
+      "caso": "lung_025",
+      "id_devuelto": "lung_025",
+      "forma": [
+        64,
+        64,
+        64
+      ],
+      "tiempo_s": 0.021,
+      "psnr_db": 14.29
+    },
+    {
+      "caso": "lung_026",
+      "id_devuelto": "lung_026",
+      "forma": [
+        64,
+        64,
+        64
+      ],
+      "tiempo_s": 0.022,
+      "psnr_db": 15.75
+    },
+    {
+      "caso": "lung_028",
+      "id_devuelto": "lung_028",
+      "forma": [
+        64,
+        64,
+        64
+      ],
+      "tiempo_s": 0.021,
+      "psnr_db": 15.15
+    },
+    {
+      "caso": "lung_059",
+      "id_devuelto": "lung_059",
+      "forma": [
+        64,
+        64,
+        64
+      ],
+      "tiempo_s": 0.023,
+      "psnr_db": 14.82
+    },
+    {
+      "caso": "lung_070",
+      "id_devuelto": "lung_070",
+      "forma": [
+        64,
+        64,
+        64
+      ],
+      "tiempo_s": 0.024,
+      "psnr_db": 14.88
+    },
+    {
+      "caso": "lung_092",
+      "id_devuelto": "lung_092",
+      "forma": [
+        64,
+        64,
+        64
+      ],
+      "tiempo_s": 0.021,
+      "psnr_db": 14.69
+    }
+  ],
+  "pruebas": [
+    {
+      "prueba": "lung_003",
+      "aprobada": true
+    },
+    {
+      "prueba": "lung_010",
+      "aprobada": true
+    },
+    {
+      "prueba": "lung_014",
+      "aprobada": true
+    },
+    {
+      "prueba": "lung_015",
+      "aprobada": true
+    },
+    {
+      "prueba": "lung_025",
+      "aprobada": true
+    },
+    {
+      "prueba": "lung_026",
+      "aprobada": true
+    },
+    {
+      "prueba": "lung_028",
+      "aprobada": true
+    },
+    {
+      "prueba": "lung_059",
+      "aprobada": true
+    },
+    {
+      "prueba": "lung_070",
+      "aprobada": true
+    },
+    {
+      "prueba": "lung_092",
+      "aprobada": true
+    },
+    {
+      "prueba": "id generado automáticamente",
+      "aprobada": true
+    },
+    {
+      "prueba": "descarga del volumen .npy",
+      "aprobada": true
+    },
+    {
+      "prueba": "solo 3 imágenes -> rechazado",
+      "aprobada": true
+    },
+    {
+      "prueba": "formato .txt -> rechazado",
+      "aprobada": true
+    }
+  ]
+}
