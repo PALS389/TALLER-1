@@ -3,101 +3,114 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>RadVol 3D · Reconstrucción</title>
+  <title>Nuevo estudio · RadVol 3D</title>
   <link rel="stylesheet" href="estilos.css">
 </head>
 <body>
+<a class="saltar" href="#principal">Saltar al contenido principal</a>
+
 <div class="shell">
 
   <!-- Barra superior -->
   <header class="topbar">
     <div class="brand">
       <div class="logo">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+             aria-hidden="true" focusable="false">
           <path d="M12 2 3 7v10l9 5 9-5V7z"/><path d="M3 7l9 5 9-5M12 12v10"/>
         </svg>
       </div>
       <div class="brand-txt"><b>RadVol 3D</b><span>Servicio local de reconstrucción · EN-2</span></div>
     </div>
-    <div class="pill"><i class="dot" id="dot"></i><span id="estado-servicio">Conectando…</span></div>
+    <p class="pill" role="status">
+      <i class="dot" id="dot" aria-hidden="true"></i><span id="estado-servicio">Conectando con el servicio…</span>
+    </p>
   </header>
 
-  <div class="head">
-    <div class="eyebrow">Épica 1 · Modelado tridimensional del órgano</div>
-    <h1>Nuevo estudio</h1>
-    <p>Carga las cuatro proyecciones radiográficas del paciente. El servicio local las
-       retroproyecta y devuelve el volumen 64 × 64 × 64 junto con el identificador del estudio.</p>
-  </div>
+  <main id="principal" tabindex="-1">
+    <div class="head">
+      <p class="eyebrow">Épica 1 · Modelado tridimensional del órgano</p>
+      <h1>Nuevo estudio</h1>
+      <p>Carga las cuatro proyecciones radiográficas del paciente. El servicio local las
+         retroproyecta y devuelve el volumen junto con el identificador del estudio.</p>
+    </div>
 
-  <!-- 1. Datos del estudio -->
-  <section class="card">
-    <h2>1 · Datos del estudio</h2>
-    <p class="sub">Si dejas el identificador vacío, el servicio genera uno automáticamente.</p>
-    <div class="fila">
-      <label class="campo">Identificador del estudio
-        <input id="id-estudio" placeholder="Ej.: lung_003 (opcional)" maxlength="64">
-      </label>
-      <div class="campo">Órgano
-        <div class="seg">
-          <button class="on" type="button">Pulmón</button>
-          <button type="button" disabled>Hígado <small>· Sprint 2</small></button>
+    <!-- 1. Datos del estudio -->
+    <section class="card" aria-labelledby="t-datos">
+      <h2 id="t-datos">1 · Datos del estudio</h2>
+      <p class="sub" id="ayuda-id">Si dejas el identificador vacío, el servicio genera uno automáticamente.</p>
+      <div class="fila">
+        <div class="campo">
+          <label for="id-estudio">Identificador del estudio</label>
+          <input id="id-estudio" name="id_estudio" placeholder="Ej.: lung_003 (opcional)"
+                 maxlength="64" autocomplete="off" aria-describedby="ayuda-id">
         </div>
+        <fieldset class="campo">
+          <legend>Órgano</legend>
+          <div class="seg">
+            <button class="on" type="button" aria-pressed="true">Pulmón</button>
+            <button type="button" aria-pressed="false" disabled>Hígado <small>· Sprint 2</small></button>
+          </div>
+        </fieldset>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- 2. Proyecciones -->
-  <section class="card">
-    <div class="barra">
-      <div>
-        <h2>2 · Proyecciones radiográficas</h2>
-        <p class="sub" style="margin:2px 0 0">Formatos: PNG de 16 bits o NPY, de 64 × 64. Haz clic o arrastra a cada casilla.</p>
-      </div>
-      <label class="btn ghost sm">Cargar las 4 a la vez
+    <!-- 2. Proyecciones -->
+    <section class="card" aria-labelledby="t-proys">
+      <div class="barra">
+        <div>
+          <h2 id="t-proys">2 · Proyecciones radiográficas</h2>
+          <p class="sub" id="ayuda-proys" style="margin:2px 0 0">
+            Formatos admitidos: PNG de 16 bits o NPY. Selecciona cada casilla con clic, teclado
+            (Enter o Espacio) o arrastra el archivo encima.</p>
+        </div>
+        <button class="btn ghost sm" id="btn-multi" type="button">Cargar las 4 a la vez</button>
         <input type="file" id="multi" accept=".png,.npy" multiple hidden>
-      </label>
-    </div>
-    <div class="proys" id="proys"></div>
-
-    <div class="acciones">
-      <span class="msg" id="msg">Faltan 4 proyecciones.</span>
-      <button class="btn ghost" id="btn-limpiar" type="button">Limpiar</button>
-      <button class="btn" id="btn-reconstruir" type="button" disabled>Reconstruir volumen</button>
-    </div>
-  </section>
-
-  <!-- 3. Resultado -->
-  <section class="card" id="resultado">
-    <div class="barra">
-      <div>
-        <h2>3 · Volumen reconstruido</h2>
-        <p class="sub" style="margin:2px 0 0">Cortes ortogonales del volumen devuelto por el servicio.</p>
       </div>
-      <span class="estado">● <span id="r-estado"></span></span>
-    </div>
+      <ul class="proys" id="proys" aria-describedby="ayuda-proys"></ul>
 
-    <div class="kpis">
-      <div class="kpi"><span>Estudio</span><b id="r-id"></b></div>
-      <div class="kpi"><span>Método</span><b id="r-metodo"></b></div>
-      <div class="kpi"><span>Volumen</span><b id="r-forma"></b></div>
-      <div class="kpi"><span>Tiempo servicio</span><b id="r-tiempo"></b></div>
-      <div class="kpi"><span>Tiempo total</span><b id="r-total"></b></div>
-    </div>
+      <div class="acciones">
+        <p class="msg" id="msg" role="status">Faltan 4 proyecciones.</p>
+        <button class="btn ghost" id="btn-limpiar" type="button">Limpiar</button>
+        <button class="btn" id="btn-reconstruir" type="button" disabled>Reconstruir volumen</button>
+      </div>
+    </section>
 
-    <div class="visor" id="visor"></div>
+    <!-- 3. Resultado -->
+    <section class="card" id="resultado" aria-labelledby="t-resultado">
+      <div class="barra">
+        <div>
+          <h2 id="t-resultado" tabindex="-1">3 · Volumen reconstruido</h2>
+          <p class="sub" style="margin:2px 0 0">Cortes ortogonales del volumen devuelto por el servicio.</p>
+        </div>
+        <p class="estado"><span aria-hidden="true">●</span> <span id="r-estado"></span></p>
+      </div>
 
-    <div class="acciones">
-      <a class="btn ghost sm" id="r-descarga" download>Descargar volumen (.npy)</a>
-            <button class="btn sm" id="btn-nuevo" type="button">Nuevo estudio</button>
-    </div>
+      <dl class="kpis">
+        <div class="kpi"><dt>Estudio</dt><dd id="r-id"></dd></div>
+        <div class="kpi"><dt>Método</dt><dd id="r-metodo"></dd></div>
+        <div class="kpi"><dt>Volumen</dt><dd id="r-forma"></dd></div>
+        <div class="kpi"><dt>Tiempo servicio</dt><dd id="r-tiempo"></dd></div>
+        <div class="kpi"><dt>Tiempo total</dt><dd id="r-total"></dd></div>
+      </dl>
 
-    <details>
-      <summary>Ver respuesta del servicio (JSON)</summary>
-      <pre id="r-json"></pre>
-    </details>
-  </section>
+      <div class="visor" id="visor"></div>
 
-  <p class="aviso">Prototipo de investigación en validación · No constituye diagnóstico médico.</p>
+      <div class="acciones">
+        <a class="btn ghost sm" id="r-descarga" download>Descargar volumen (.npy)</a>
+        <button class="btn sm" id="btn-nuevo" type="button">Nuevo estudio</button>
+      </div>
+
+      <details>
+        <summary>Ver respuesta del servicio (JSON)</summary>
+        <pre id="r-json"></pre>
+      </details>
+    </section>
+  </main>
+
+  <footer class="aviso">
+    Prototipo de investigación en validación · No constituye diagnóstico médico.
+  </footer>
 </div>
 
 <script type="module" src="js/main.js"></script>

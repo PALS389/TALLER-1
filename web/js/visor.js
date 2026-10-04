@@ -12,23 +12,27 @@ export function construirVisor(contenedor, vol, rango) {
   const tmp = document.createElement("canvas"); tmp.width = tmp.height = G;
 
   for (const [clave, p] of Object.entries(planos)) {
-    const div = document.createElement("div");
-    div.className = "plano";
-    div.innerHTML = `
-      <div class="tit"><b>${p.titulo}</b><span>corte <b class="idx">${pos[clave]}</b> / ${G - 1}</span></div>
-      <canvas width="384" height="384"></canvas>
-      <input type="range" min="0" max="${G - 1}" value="${pos[clave]}">`;
-    contenedor.appendChild(div);
-    const cv = div.querySelector("canvas");
+    const fig = document.createElement("figure");
+    fig.className = "plano";
+    fig.innerHTML = `
+      <figcaption class="tit"><b>${p.titulo}</b><span>corte <b class="idx">${pos[clave]}</b> / ${G - 1}</span></figcaption>
+      <canvas width="384" height="384" role="img"></canvas>
+      <input type="range" min="0" max="${G - 1}" value="${pos[clave]}" aria-label="Corte ${p.titulo.toLowerCase()}">`;
+    contenedor.appendChild(fig);
+    const cv = fig.querySelector("canvas");
+    const deslizador = fig.querySelector("input");
     const dibujar = () => {
       pintar(tmp, vol, p.f, rango);
       const ctx = cv.getContext("2d");
       ctx.imageSmoothingEnabled = true;
       ctx.drawImage(tmp, 0, 0, cv.width, cv.height);
+      const texto = `Corte ${p.titulo.toLowerCase()} ${pos[clave]} de ${G - 1}`;
+      cv.setAttribute("aria-label", texto + " del volumen reconstruido");
+      deslizador.setAttribute("aria-valuetext", texto);
     };
-    div.querySelector("input").addEventListener("input", (e) => {
+    deslizador.addEventListener("input", (e) => {
       pos[clave] = +e.target.value;
-      div.querySelector(".idx").textContent = pos[clave];
+      fig.querySelector(".idx").textContent = pos[clave];
       dibujar();
     });
     dibujar();

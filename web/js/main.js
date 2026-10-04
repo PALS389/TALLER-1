@@ -35,7 +35,8 @@ async function enviarEstudio() {
   fd.append("organo", "pulmon");
 
   btn.disabled = true;
-  btn.innerHTML = '<i class="spin"></i>Reconstruyendo…';
+  btn.innerHTML = '<i class="spin" aria-hidden="true"></i>Reconstruyendo…';
+  $("msg").textContent = "Reconstruyendo el volumen…";
   const t0 = performance.now();
   try {
     const { ok, datos: j } = await reconstruir(fd);
@@ -67,14 +68,18 @@ function mostrarResultado(j, total) {
   construirVisor($("visor"), vol, [j.estadisticas.min, j.estadisticas.max]);
   $("resultado").classList.add("on");
   $("resultado").scrollIntoView({ behavior: "smooth" });
+  $("t-resultado").focus({ preventScroll: true });   // lleva el foco al resultado (2.4.3)
 }
 
 // ---------- Inicio ----------
-iniciarCarga($("proys"), $("multi"), actualizarBoton);
+iniciarCarga($("proys"), $("btn-multi"), $("multi"), actualizarBoton);
 $("btn-reconstruir").addEventListener("click", enviarEstudio);
 $("btn-limpiar").addEventListener("click", () => {
   limpiarCarga();
   $("resultado").classList.remove("on");
 });
-$("btn-nuevo").addEventListener("click", () => window.scrollTo({ top: 0, behavior: "smooth" }));
+$("btn-nuevo").addEventListener("click", () => {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  $("id-estudio").focus({ preventScroll: true });
+});
 comprobarServicio();
