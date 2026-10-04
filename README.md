@@ -60,6 +60,21 @@ Resultado: **14/14 pruebas aprobadas** sobre los 10 casos de test de pulmón. El
 coincide con la retroproyección de TA-2 (diferencia < 1e-5) y el PSNR medio (14.90 dB)
 coincide con `proyecciones_report.csv`. Rechaza estudios con 3 imágenes o formatos no admitidos.
 
+## Interfaz de usuario
+
+La interfaz (`web/`) sigue **WCAG 2.2 nivel AA (ISO/IEC 40500:2025)** y los principios de
+**ISO 9241-110:2020**, y cumple los criterios de aceptación de **HU-1.1**.
+Criterios aplicados y verificación: [`docs/estandar-interfaz.md`](docs/estandar-interfaz.md).
+Convención de commits: [`CONTRIBUTING.md`](CONTRIBUTING.md) (Conventional Commits 1.0.0).
+
+| Módulo | Responsabilidad |
+|---|---|
+| `web/js/api.js` | Único punto de contacto con el servicio (capa 2) |
+| `web/js/carga.js` | Casillas de las 4 proyecciones, validación de formulario y rechazos |
+| `web/js/visor.js` | Cortes axial, coronal y sagital |
+| `web/js/imagen.js` | Lectura de PNG/NPY para la vista previa |
+| `web/js/main.js` | Estados del estudio (HU-1.1) y unión de los módulos |
+
 ## Pendiente (siguientes sprints)
 
 - Conectar la U-Net de EN-1: copiar los pesos a `modelos/unet_pulmon.pth` e instalar `torch` y `monai`.

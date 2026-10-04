@@ -64,8 +64,33 @@
 
 ## 6. Verificación
 
+Las capturas de cada prueba están en el registro semanal del equipo en Notion
+(Semana del 04/10/2026 · Capa 1 · Interfaz de usuario).
+
+### 6.1 Estado antes de los cambios (commit `5240bb6`)
+
+Auditoría con los mismos criterios de la sección 3, sobre la versión anterior de la interfaz:
+
+| Criterio | Hallazgo |
+|---|---|
+| 1.4.3 Contraste mínimo | 2 textos a 4.34:1 (se exige 4.5:1): descripción del encabezado y pie de página |
+| 1.4.11 Contraste no textual | 7 controles a 1.48:1 (se exige 3:1): campo de identificador, 4 casillas, "Cargar las 4 a la vez" y "Limpiar" |
+| 2.1.1 Teclado | Las 4 casillas de carga y "Cargar las 4 a la vez" no se alcanzaban con Tab |
+| 2.4.7 Foco visible | Los botones no mostraban indicador de foco |
+| 1.3.1 / 2.4.1 | Sin regiones `main` y `footer`, y sin enlace para saltar al contenido |
+| HU-1.1 · criterio 3 | Al elegir más de 4 archivos se tomaban 4 en silencio, sin rechazar ni identificar el sobrante |
+
+### 6.2 Resultado después de los cambios (commit `2e306a8`)
+
 | Prueba | Herramienta | Resultado |
 |---|---|---|
-| Auditoría de accesibilidad | Lighthouse (Chrome DevTools) · categoría *Accesibilidad* | _Pendiente de registrar_ |
-| Navegación solo con teclado | Manual (Tab, Enter, Espacio) | _Pendiente de registrar_ |
-| Criterios de HU-1.1 | Manual, con los casos de `ejemplos/` | _Pendiente de registrar_ |
+| Auditoría de accesibilidad | Lighthouse (Chrome DevTools), modo Navigation, Desktop | Puntaje de accesibilidad: **__ / 100** |
+| Contraste de texto y de controles | Cálculo de la razón de contraste WCAG sobre cada texto y borde visible | 0 fallos en los estados inicial, rechazado y completado |
+| Navegación solo con teclado | Manual: Tab, Enter y Espacio | Todos los controles alcanzables y con foco visible; Enter en una casilla abre el selector de archivos |
+| Reflujo a 320 px | Ventana de 320 px de ancho | Sin desplazamiento horizontal |
+| HU-1.1 · criterio 1 | Manual, `ejemplos/lung_003` | Cumple: 4 casillas con su ángulo; "Reconstruir" solo con 4 imágenes válidas |
+| HU-1.1 · criterio 2 | Manual, `ejemplos/lung_003` | Cumple: el estado pasa a «Reconstrucción completada» y se desbloquea la vista |
+| HU-1.1 · criterio 3 | Manual: 5 archivos, 3 archivos y `nota.txt` | Cumple: se rechaza, se nombra cada archivo y no se procesa |
+| HU-1.1 · criterio 4 | Manual, `ejemplos/lung_003` | Cumple: se muestra "Tiempo hasta la vista" en segundos |
+
+Verificado por: Leyva Sandoval, Piero · Fecha: 04/10/2026
