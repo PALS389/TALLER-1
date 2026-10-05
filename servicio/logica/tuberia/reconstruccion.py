@@ -1,9 +1,14 @@
+"""
+Capa 2 · Tubería · Etapa 2: Reconstrucción.
+
+4 proyecciones (4, 64, 64) -> volumen (64, 64, 64).
+"""
 import numpy as np
 
-from . import config  # noqa: F401  (agrega la carpeta de TA-2 al path)
+from ... import config  # noqa: F401  (agrega la carpeta de TA-2 al path)
 import ta2
 
-from .config import ANGULOS, RUTA_PESOS
+from ...config import ANGULOS, RUTA_PESOS
 
 
 class Reconstructor:

@@ -1,0 +1,1 @@
+"""Tubería de procesamiento (capa 2): preproceso -> reconstrucción -> segmentación -> mallas."""

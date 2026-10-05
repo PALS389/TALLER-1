@@ -12,8 +12,8 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
 from .config import ANGULOS, DIR_ESTUDIOS, DIR_WEB, VERSION
-from .lectura import ImagenInvalida, leer_proyeccion
-from .reconstructor import Reconstructor
+from .logica.tuberia.preproceso import ImagenInvalida, leer_proyeccion
+from .logica.tuberia.reconstruccion import Reconstructor
 
 app = FastAPI(
     title="RadVol 3D · Servicio de reconstrucción (EN-2)",

@@ -7,8 +7,8 @@ import numpy as np
 RAIZ = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(RAIZ))           # para poder hacer "from servicio ..."
 
-from servicio.lectura import leer_proyeccion, ImagenInvalida
-from servicio.reconstructor import Reconstructor
+from servicio.logica.tuberia.preproceso import leer_proyeccion, ImagenInvalida
+from servicio.logica.tuberia.reconstruccion import Reconstructor
 
 PULMON = RAIZ / "datos" / "TA2_entrega" / "processed" / "pulmon"
 caso = sys.argv[1] if len(sys.argv) > 1 else "lung_003"

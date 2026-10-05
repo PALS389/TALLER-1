@@ -1,0 +1,1 @@
+"""Capa 2 · Lógica de negocio: casos de uso y tubería de procesamiento."""

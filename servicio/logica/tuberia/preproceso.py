@@ -1,10 +1,15 @@
-"""Lectura y validación de las imágenes que envía la aplicación."""
+"""
+Capa 2 · Tubería · Etapa 1: Preproceso.
+
+Convierte cada radiografía tal como se subió (bytes de un .png o .npy) en una
+matriz 64x64 float32 y rechaza la que no sea válida, identificando el archivo.
+"""
 import io
 
 import numpy as np
 from PIL import Image
 
-from .config import ESCALA_PNG, FORMATOS, TAM
+from ...config import ESCALA_PNG, FORMATOS, TAM
 
 
 class ImagenInvalida(ValueError):
