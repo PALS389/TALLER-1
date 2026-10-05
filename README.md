@@ -9,21 +9,48 @@
 
 ```
 4 radiografías (0°, 45°, 90°, 135°)  ──►  POST /reconstruir  ──►  volumen 64×64×64 + id del estudio
-      PNG 16 bits o NPY 64×64              ta2.retroproyectar()        guardado en estudios/<id>/
+      PNG 16 bits o NPY 64×64              ta2.retroproyectar()        guardado en almacenamiento/estudios/<id>/
                                            (+ U-Net EN-1 si hay pesos)
 ```
 
-## Estructura
+## Arquitectura en capas
 
-| Carpeta | Contenido |
-|---|---|
-| `servicio/` | `config.py` (rutas), `lectura.py` (valida imágenes), `reconstructor.py` (motor), `main.py` (API FastAPI) |
-| `web/` | Interfaz: `index.html`, `estilos.css`, `app.js` |
-| `herramientas/` | `explorar_datos.py`, `exportar_estudio.py`, `verificar_png.py` |
-| `pruebas/` | `probar_motor.py`, `prueba_aceptacion.py` |
-| `evidencias/` | Figuras y reporte de la prueba de aceptación |
-| `datos/` | `TA2_entrega/` descomprimido (no se sube a git) |
-| `modelos/` | `unet_pulmon.pth` de EN-1 (opcional) |
+El proyecto sigue la **arquitectura en capas cerradas** del documento de arquitectura de RadVol 3D:
+cada capa solo usa la inmediatamente inferior.
+
+```
+web/                              Capa 1 · Presentación
+ └─ js/api.js                       único módulo que llama al servicio
+        │ HTTP · JSON
+servicio/api/rutas.py             Entrada a la capa 2: traduce HTTP <-> casos de uso
+        │
+servicio/logica/                  Capa 2 · Lógica de negocio
+ ├─ casos_uso.py                    registrar_estudio · procesar_estudio · consultar_resultado
+ └─ tuberia/
+     ├─ preproceso.py               etapa 1
+     └─ reconstruccion.py           etapa 2
+        │
+servicio/persistencia/            Capa 3 · Persistencia
+ └─ almacen_archivos.py             único que conoce las rutas en disco
+        │
+almacenamiento/estudios/<id>/     Capa 4 · Sistema de archivos (no se sube a git)
+```
+
+| Carpeta | Capa | Puede usar | No puede usar |
+|---|---|---|---|
+| `web/` | 1 · Presentación | el servicio, solo desde `api.js` | lógica ni almacenamiento |
+| `servicio/api/` | Entrada a la capa 2 | `logica` | `persistencia` |
+| `servicio/logica/` | 2 · Lógica de negocio | `persistencia` | HTTP (`fastapi`) ni rutas en disco |
+| `servicio/persistencia/` | 3 · Persistencia | disco | `logica`, HTTP |
+| `almacenamiento/` | 4 · Sistema de archivos | — | — |
+
+`servicio/main.py` solo ensambla las capas y `servicio/config.py` reúne la configuración.
+`CasosDeUso` recibe el almacén por inyección de dependencias, de modo que el futuro repositorio
+con PostgreSQL (capas 3 y 4) se conecta sin modificar la lógica.
+
+**Carpetas de apoyo** (no son capas): `docs/` documentación · `pruebas/` pruebas ·
+`herramientas/` scripts de datos · `ejemplos/` estudios de prueba · `evidencias/` resultados ·
+`datos/` entrega de TA-2 (no se sube a git) · `modelos/` pesos de EN-1 (opcional).
 
 ## Instalación (Linux / WSL)
 
@@ -52,13 +79,24 @@ uvicorn servicio.main:app --reload
 
 ## Verificación
 
+Prueba de aceptación de EN-2 (con el servicio corriendo):
+
 ```bash
-python pruebas/prueba_aceptacion.py      # con el servicio corriendo
+python pruebas/prueba_aceptacion.py
 ```
 
 Resultado: **14/14 pruebas aprobadas** sobre los 10 casos de test de pulmón. El volumen
 coincide con la retroproyección de TA-2 (diferencia < 1e-5) y el PSNR medio (14.90 dB)
 coincide con `proyecciones_report.csv`. Rechaza estudios con 3 imágenes o formatos no admitidos.
+
+Cumplimiento de la arquitectura en capas (no requiere el servicio encendido):
+
+```bash
+python pruebas/prueba_capas.py
+```
+
+Analiza los `import` de cada archivo y comprueba que ninguna capa use una que no le corresponde.
+Incluye un control que introduce una violación a propósito para verificar que se detecta.
 
 ## Interfaz de usuario
 
@@ -78,7 +116,7 @@ Convención de commits: [`CONTRIBUTING.md`](CONTRIBUTING.md) (Conventional Commi
 ## Pendiente (siguientes sprints)
 
 - Conectar la U-Net de EN-1: copiar los pesos a `modelos/unet_pulmon.pth` e instalar `torch` y `monai`.
-- HU-1.1: flujo completo del médico sobre este servicio.
+- Capas 3 y 4 · Base de datos e integración: reemplazar los metadatos en JSON por un repositorio con PostgreSQL, conectándolo en `servicio/main.py` sin modificar `servicio/logica/`.
 
 ---
 Prototipo de investigación en validación · No constituye diagnóstico médico.

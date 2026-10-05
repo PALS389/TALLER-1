@@ -24,9 +24,13 @@ El proyecto sigue **[Conventional Commits 1.0.0](https://www.conventionalcommits
 | `test` | Agregar o corregir pruebas |
 | `chore` | Mantenimiento (dependencias, configuración) |
 
+
 ### Alcances usados
 
-`web` (interfaz) · `api` (servicio FastAPI) · `motor` (reconstrucción) · `datos` (herramientas de datos)
+`web` (capa 1) · `api` (entrada a la capa 2) · `logica` (capa 2) · `persistencia` (capa 3) ·
+`arquitectura` (reglas entre capas) · `datos` (herramientas de datos)
+
+Antes de cada commit que toque `servicio/` o `web/js/`, ejecutar `python pruebas/prueba_capas.py`.
 
 ### Reglas
 
