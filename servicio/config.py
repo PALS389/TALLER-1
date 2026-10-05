@@ -8,8 +8,8 @@ RAIZ = Path(__file__).resolve().parent.parent
 DIR_TA2 = RAIZ / "datos" / "TA2_entrega"
 # Pesos del modelo de EN-1 (opcional). Si no existe, se usa la retroproyección.
 RUTA_PESOS = RAIZ / "modelos" / "unet_pulmon.pth"
-# Carpeta donde se guarda cada estudio procesado
-DIR_ESTUDIOS = RAIZ / "estudios"
+# Capa 4 · sistema de archivos: aquí guarda la capa 3 cada estudio procesado
+DIR_ALMACENAMIENTO = RAIZ / "almacenamiento" / "estudios"
 # Interfaz web
 DIR_WEB = RAIZ / "web"
 

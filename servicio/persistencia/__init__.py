@@ -1,0 +1,1 @@
+"""Capa 3 · Persistencia: traduce entre los objetos del dominio y el almacenamiento."""

@@ -1,5 +1,4 @@
 import base64
-import json
 import re
 import time
 import uuid
@@ -8,12 +7,13 @@ from typing import Optional
 
 import numpy as np
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
-from fastapi.responses import FileResponse, JSONResponse
+from fastapi.responses import JSONResponse, Response
 from fastapi.staticfiles import StaticFiles
 
-from .config import ANGULOS, DIR_ESTUDIOS, DIR_WEB, VERSION
+from .config import ANGULOS, DIR_ALMACENAMIENTO, DIR_WEB, VERSION
 from .logica.tuberia.preproceso import ImagenInvalida, leer_proyeccion
 from .logica.tuberia.reconstruccion import Reconstructor
+from .persistencia.almacen_archivos import AlmacenArchivos, EstudioNoEncontrado
 
 app = FastAPI(
     title="RadVol 3D · Servicio de reconstrucción (EN-2)",
@@ -22,7 +22,7 @@ app = FastAPI(
     version=VERSION,
 )
 motor = Reconstructor()              # se carga una sola vez al iniciar
-DIR_ESTUDIOS.mkdir(exist_ok=True)
+almacen = AlmacenArchivos(DIR_ALMACENAMIENTO)   # capa 3: único que conoce las rutas
 PATRON_ID = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 
 
@@ -81,11 +81,9 @@ async def reconstruir(
     volumen = motor.reconstruir(proys)
     segundos = time.perf_counter() - t0
 
-    # 5. Guardar el estudio en disco
-    carpeta = DIR_ESTUDIOS / id_estudio
-    carpeta.mkdir(parents=True, exist_ok=True)
-    np.save(carpeta / "volumen.npy", volumen)
-    np.save(carpeta / "proyecciones.npy", proys)
+    # 5. Guardar el estudio (capa 3)
+    almacen.guardar_proyecciones(id_estudio, proys)
+    almacen.guardar_volumen(id_estudio, volumen)
     meta = {
         "id_estudio": id_estudio,
         "organo": organo,
@@ -100,8 +98,7 @@ async def reconstruir(
                          "media": round(float(volumen.mean()), 4)},
         "descarga": f"/estudios/{id_estudio}/volumen.npy",
     }
-    (carpeta / "metadatos.json").write_text(json.dumps(meta, indent=2, ensure_ascii=False),
-                                            encoding="utf-8")
+    almacen.guardar_metadatos(id_estudio, meta)
 
     # 6. Respuesta: metadatos + volumen en base64 (float32, orden C)
     if not incluir_volumen:
@@ -114,10 +111,14 @@ async def reconstruir(
 @app.get("/estudios/{id_estudio}/volumen.npy", tags=["estudios"])
 def descargar_volumen(id_estudio: str):
     """Descarga el volumen reconstruido de un estudio como archivo .npy."""
-    ruta = DIR_ESTUDIOS / id_estudio / "volumen.npy"
-    if not PATRON_ID.match(id_estudio) or not ruta.exists():
+    if not PATRON_ID.match(id_estudio):
         raise HTTPException(404, "Estudio no encontrado")
-    return FileResponse(ruta, filename=f"{id_estudio}_volumen.npy")
+    try:
+        contenido = almacen.leer_volumen_bytes(id_estudio)
+    except EstudioNoEncontrado:
+        raise HTTPException(404, "Estudio no encontrado")
+    return Response(contenido, media_type="application/octet-stream",
+                    headers={"Content-Disposition": f'attachment; filename="{id_estudio}_volumen.npy"'})
 
 
 # La interfaz web se sirve en la raíz (se monta al final para no tapar las rutas)
