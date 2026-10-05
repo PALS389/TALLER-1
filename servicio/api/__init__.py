@@ -1,0 +1,1 @@
+"""Entrada a la capa 2 por HTTP: traduce peticiones en llamadas a los casos de uso."""
