@@ -29,7 +29,7 @@ from datetime import datetime, timedelta
 from . import layout
 from .repositories.model_repository import RECONSTRUCTION, ModelRepository
 from .repositories.organ_repository import OrganRepository, normalise
-from .repositories.processing_stage_repository import (COMPLETED, SKIPPED,
+from .repositories.processing_stage_repository import (COMPLETED, SKIPPED, RUNNING, FAILED,
                                                        WAITING,
                                                        ProcessingStageRepository)
 from .repositories.projection_repository import (ProjectionFile,
@@ -105,6 +105,18 @@ class MetadataStore:
         Segmentation and meshes are recorded as omitted, not left out, so the
         interface can show the whole pipeline and say what was skipped.
         """
+        events = metadata.get("stage_statuses")
+        if events:
+            statuses = {"waiting": WAITING, "start": RUNNING,
+                        "success": COMPLETED, "error": FAILED}
+            for number in range(1, 5):
+                event = events.get(str(number), "waiting")
+                details = metadata.get("stage_details", {}).get(str(number), {})
+                started_at = datetime.fromisoformat(details["started_at"]) if details.get("started_at") else registered_at
+                finished_at = datetime.fromisoformat(details["finished_at"]) if details.get("finished_at") else None
+                self._stages.save(study_id, number, started_at, statuses[event],
+                                  finished_at=finished_at)
+            return
         self._stages.save(study_id, PREPROCESSING_STAGE, registered_at, COMPLETED)
 
         method = metadata.get("metodo")

@@ -45,3 +45,9 @@ def projection_path(study_id: str, angle_degrees: int) -> str:
 def volume_path(study_id: str) -> str:
     """File of the reconstructed volume."""
     return f"{study_folder(study_id)}/volume.npy"
+
+
+def artifact_path(study_id: str, name: str) -> str:
+    if name not in {"metadata.json", "organ.glb", "tumor.glb"}:
+        raise ValueError("Unsupported study artifact.")
+    return f"{study_folder(study_id)}/{name}"

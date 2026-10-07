@@ -1,1 +1,1 @@
-"""Tubería de procesamiento (capa 2): preproceso -> reconstrucción -> segmentación -> mallas."""
+"""Layer 2 pipeline: preprocessing -> reconstruction -> segmentation -> meshes."""

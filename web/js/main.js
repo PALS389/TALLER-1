@@ -1,4 +1,4 @@
-import { obtenerSalud, reconstruir, decodificarVolumen } from "./api.js";
+import { obtenerSalud, reconstruir, decodificarVolumen, loadStudyResult } from "./api.js";
 import { ANGULOS, archivos, rechazos, errorSeleccion,
          iniciarCarga, limpiarCarga, marcarRechazo } from "./carga.js";
 import { construirVisor } from "./visor.js";
@@ -25,7 +25,7 @@ async function comprobarServicio() {
     const s = await obtenerSalud();
     $("dot").className = "dot on";
     $("estado-servicio").textContent =
-      "Servicio en línea · " + (s.metodo === "unet_refinamiento" ? "U-Net EN-1" : "retroproyección simple");
+      "Servicio en línea · " + (s.metodo === "four_stage_pipeline" ? "EN-1 + EN-4" : s.metodo);
   } catch {
     $("dot").className = "dot off";
     $("estado-servicio").textContent = "Servicio no disponible";
@@ -123,10 +123,12 @@ async function mostrarResultado(j) {
   const vol = decodificarVolumen(j.volumen);
   $("r-estado").textContent = j.estado;
   $("r-id").textContent = j.id_estudio;
-  $("r-metodo").textContent = j.metodo === "unet_refinamiento" ? "U-Net (EN-1)" : "Retroproyección";
+  $("r-metodo").textContent = j.metodo === "four_stage_pipeline" ? "EN-1 + EN-4 + meshes" : j.metodo;
   $("r-forma").textContent = j.volumen.forma.join(" × ");
   $("r-tiempo").textContent = j.tiempo_s.toFixed(2) + " s";
   $("r-descarga").href = j.descarga;
+  $("r-mesh-viewer").href = `/mesh-viewer.html?study=${encodeURIComponent(j.id_estudio)}`;
+  $("r-mesh-viewer").hidden = !(j.archivos_resultado?.organ_glb && j.archivos_resultado?.tumor_glb);
   const vista = { ...j, volumen: { ...j.volumen, datos_base64: j.volumen.datos_base64.slice(0, 60) + "… (" + j.volumen.datos_base64.length.toLocaleString() + " caracteres)" } };
   $("r-json").textContent = JSON.stringify(vista, null, 2);
 
@@ -151,3 +153,13 @@ $("btn-nuevo").addEventListener("click", () => {
 });
 alCambiarCarga();
 comprobarServicio();
+
+const savedStudyId = new URLSearchParams(window.location.search).get("study");
+if (savedStudyId) {
+  loadStudyResult(savedStudyId).then(async (result) => {
+    if (!result.volumen) throw new Error("Study has no completed volume");
+    await mostrarResultado(result);
+    $("r-total").textContent = "Stored result";
+    ponerEstado("completado", "Resultado recuperado del almacenamiento.");
+  }).catch(() => ponerEstado("rechazado", "No se pudo recuperar el estudio."));
+}

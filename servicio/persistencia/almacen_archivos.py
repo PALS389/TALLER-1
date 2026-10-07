@@ -25,6 +25,7 @@ Run a self-check with:
 """
 from __future__ import annotations
 
+import json
 import numpy as np
 
 from ..config import ANGULOS
@@ -92,10 +93,28 @@ class AlmacenArchivos:
     def guardar_metadatos(self, id_estudio: str, metadatos: dict) -> None:
         with self._traducir_errores(id_estudio):
             self._metadatos.save(id_estudio, metadatos)
+            self._almacen.save_bytes(layout.artifact_path(id_estudio, "metadata.json"),
+                                     json.dumps(metadatos, allow_nan=False).encode("utf-8"))
 
     def leer_metadatos(self, id_estudio: str) -> dict:
         with self._traducir_errores(id_estudio):
-            return self._metadatos.read(id_estudio)
+            metadata = self._metadatos.read(id_estudio)
+            try:
+                snapshot = json.loads(self._almacen.read_bytes(
+                    layout.artifact_path(id_estudio, "metadata.json")))
+            except FileNotFoundInStorage:
+                return metadata
+            snapshot["estado"] = metadata["estado"]
+            return snapshot
+
+    def save_mesh(self, study_id: str, name: str, content: bytes) -> str:
+        reference = layout.artifact_path(study_id, name)
+        self._almacen.save_bytes(reference, content)
+        return reference
+
+    def read_mesh(self, study_id: str, name: str) -> bytes:
+        with self._traducir_errores(study_id):
+            return self._almacen.read_bytes(layout.artifact_path(study_id, name))
 
     # ---------- traducción de errores ----------
     @staticmethod

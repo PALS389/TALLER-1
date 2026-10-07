@@ -1,0 +1,4 @@
+-r requirements.txt
+torch>=2.6
+scikit-image>=0.22
+trimesh>=4.0

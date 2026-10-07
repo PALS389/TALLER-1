@@ -16,7 +16,9 @@ Run a self-check with:
 from __future__ import annotations
 
 import io
+import time
 
+import httpx
 import numpy as np
 from supabase import create_client
 
@@ -106,14 +108,19 @@ class ObjectStorage:
     def read_bytes(self, path: str) -> bytes:
         """Raw content of the object."""
         key = _check_path(path)
-        try:
-            return self._bucket.download(key)
-        except Exception as error:
-            if _looks_missing(error):
-                raise FileNotFoundInStorage(key) from error
-            raise StorageError(
-                f"Could not read {key!r} from bucket {self._bucket_name!r}."
-            ) from error
+        for attempt in range(3):
+            try:
+                return self._bucket.download(key)
+            except Exception as error:
+                if isinstance(error, httpx.TransportError) and attempt < 2:
+                    time.sleep(0.2 * (2 ** attempt))
+                    continue
+                if _looks_missing(error):
+                    raise FileNotFoundInStorage(key) from error
+                raise StorageError(
+                    f"Could not read {key!r} from bucket {self._bucket_name!r}."
+                ) from error
+        raise StorageError("Storage read attempts exhausted.")
 
     # ---------- arrays ----------
     def save_array(self, path: str, array: np.ndarray) -> None:
