@@ -5,12 +5,13 @@ from .api.rutas import crear_rutas
 from .config import DIR_ALMACENAMIENTO, DIR_WEB, GRID_SIZE, VERSION
 from .logica.casos_uso import StudyUseCases
 from .logica.compatibility import LegacyFileStoreAdapter
-from .logica.tuberia.reconstruccion import Reconstructor
+from .logica.tuberia.factory import create_pipeline
 from .persistencia.almacen_archivos import AlmacenArchivos
 
 # Capa 3 -> Capa 2 -> entrada HTTP
 almacen = AlmacenArchivos(DIR_ALMACENAMIENTO)
-casos = StudyUseCases(file_store=LegacyFileStoreAdapter(almacen), reconstructor=Reconstructor())
+file_store = LegacyFileStoreAdapter(almacen)
+casos = StudyUseCases(file_store=file_store, pipeline=create_pipeline(None, file_store))
 
 app = FastAPI(
     title="RadVol 3D · Servicio de reconstrucción (EN-2)",

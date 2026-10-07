@@ -79,6 +79,17 @@ class BusinessContractTests(unittest.TestCase):
         with self.assertRaises(StudyNotFound):
             self.cases.get_results("MISSING")
 
+    def test_only_completed_registered_meshes_can_be_read(self):
+        self.metadata["TEST-1"] = {"status": "completed", "result_files": {"tumor_glb": "TEST-1/tumor.glb"}}
+        self.store.read_mesh = lambda study_id, name: b"glTF"
+        self.assertEqual(self.cases.get_mesh_glb("TEST-1", "tumor.glb"), b"glTF")
+        for name in ("organ.glb", "metadata.json", "../tumor.glb"):
+            with self.assertRaises(StudyNotFound):
+                self.cases.get_mesh_glb("TEST-1", name)
+        self.metadata["TEST-1"]["status"] = "processing"
+        with self.assertRaises(StudyNotFound):
+            self.cases.get_mesh_glb("TEST-1", "tumor.glb")
+
     def test_invalid_image_identifies_filename_in_english_contract(self):
         with self.assertRaises(InvalidImage) as error:
             read_projection("invalid.txt", b"invalid")

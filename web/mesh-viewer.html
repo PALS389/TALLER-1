@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>RadVol3D | Visor 3D</title>
+  <link rel="stylesheet" href="mesh-viewer.css">
+</head>
+<body>
+  <main class="viewer-layout">
+    <aside class="controls">
+      <header><h1>RadVol3D</h1><a id="back" class="icon-button" href="/" title="Volver al estudio" aria-label="Volver al estudio"><i data-lucide="arrow-left"></i></a></header>
+      <form id="study-form">
+        <label for="study-id">Estudio</label>
+        <div class="study-row"><input id="study-id" required maxlength="64" pattern="[A-Za-z0-9_-]+"><button class="icon-button" title="Abrir estudio" aria-label="Abrir estudio"><i data-lucide="folder-open"></i></button></div>
+      </form>
+      <fieldset id="mesh-controls" disabled>
+        <legend>Visibilidad</legend>
+        <label class="check"><input id="organ-visible" type="checkbox" checked><span class="swatch organ"></span>Órgano</label>
+        <label class="check"><input id="tumor-visible" type="checkbox" checked><span class="swatch tumor"></span>Tumor</label>
+        <label class="range-label" for="opacity">Opacidad del órgano <output id="opacity-value">35 %</output></label>
+        <input id="opacity" type="range" min="0" max="100" value="35">
+        <div class="divider"></div>
+        <label class="check"><input id="clip-enabled" type="checkbox">Plano de corte</label>
+        <label class="range-label" for="clip-position">Posición <output id="clip-value">0 %</output></label>
+        <input id="clip-position" type="range" min="-100" max="100" value="0" disabled>
+        <label class="check"><input id="rotate" type="checkbox">Rotación automática</label>
+        <div class="tools"><button id="reset-view" class="icon-button" type="button" title="Restablecer vista" aria-label="Restablecer vista"><i data-lucide="rotate-ccw"></i></button><button id="benchmark" type="button">Medir FPS (30 s)</button></div>
+      </fieldset>
+      <dl class="metrics"><dt>Triángulos órgano</dt><dd id="organ-triangles">-</dd><dt>Triángulos tumor</dt><dd id="tumor-triangles">-</dd><dt>Confianza EN-4</dt><dd id="confidence">-</dd></dl>
+      <output id="benchmark-result" aria-live="polite"></output>
+      <p class="research" id="organ-source">Superficie del órgano aproximada; no es una segmentación pulmonar validada. La confianza EN-4 no es precisión diagnóstica.</p>
+      <p class="research">Prototipo de investigación. No constituye diagnóstico médico.</p>
+    </aside>
+    <section class="scene" id="scene" aria-label="Modelo tridimensional del órgano y tumor">
+      <div class="fps"><output id="fps">-</output> FPS</div>
+      <p id="viewer-status" role="status">Selecciona un estudio.</p>
+    </section>
+  </main>
+  <script src="vendor/three.min.js"></script>
+  <script src="vendor/OrbitControls.js"></script>
+  <script src="vendor/GLTFLoader.js"></script>
+  <script src="vendor/lucide.min.js"></script>
+  <script type="module" src="js/mesh-viewer.js"></script>
+</body>
+</html>

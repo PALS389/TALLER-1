@@ -7,6 +7,7 @@ import numpy as np
 from scipy import ndimage
 
 from .orchestrator import MeshResult
+from .lung_mask import EN42LungMaskExtractor
 
 VOXEL_MM = 2.5
 MAX_TRIANGLES = 25_000
@@ -291,15 +292,16 @@ class EN42MeshGenerator:
 
     def __init__(self, *, voxel_mm: float = VOXEL_MM,
                  max_triangles: int = MAX_TRIANGLES,
-                 organ_threshold: float = 0.05) -> None:
+                 lung_mask_extractor: EN42LungMaskExtractor | None = None) -> None:
         self._voxel_mm = voxel_mm
         self._max_triangles = max_triangles
-        self._organ_threshold = organ_threshold
+        self._lung_mask_extractor = lung_mask_extractor or EN42LungMaskExtractor()
         self.last_metrics: dict[str, dict[str, Any]] = {}
 
     def generate(self, volume: np.ndarray, tumor_mask: np.ndarray) -> MeshResult:
         tumor = np.asarray(tumor_mask) > 0
-        organ = self._organ_mask(volume, tumor)
+        lung_result = self._lung_mask_extractor.extract(volume, tumor)
+        organ = lung_result.mask
 
         organ_mesh = mesh_from_mask(
             organ,
@@ -320,17 +322,10 @@ class EN42MeshGenerator:
             tumor_metrics = {"has_lesion": False, "mask_voxels": 0, "triangles": 0}
             tumor_glb = export_empty_glb_bytes()
         self.last_metrics = {
-            "organ": organ_mesh.metrics,
+            "organ": {**organ_mesh.metrics, "segmentation": lung_result.diagnostics},
             "tumor": tumor_metrics,
         }
         return MeshResult(
             organ_glb=export_glb_bytes(organ_mesh, ORGAN_COLOR),
             tumor_glb=tumor_glb,
         )
-
-    def _organ_mask(self, volume: np.ndarray, tumor: np.ndarray) -> np.ndarray:
-        volume = np.asarray(volume, dtype=np.float32)
-        organ = volume > self._organ_threshold
-        organ = ndimage.binary_closing(organ, iterations=2)
-        organ = ndimage.binary_fill_holes(organ)
-        return np.logical_or(organ, tumor).astype(np.uint8)

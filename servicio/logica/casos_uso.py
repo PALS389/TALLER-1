@@ -41,6 +41,9 @@ class FileStore(Protocol):
     def read_volume_bytes(self, study_id: str) -> bytes:
         ...
 
+    def read_mesh(self, study_id: str, name: str) -> bytes:
+        ...
+
     def save_metadata(self, study_id: str, metadata: dict[str, Any]) -> None:
         ...
 
@@ -237,7 +240,7 @@ class StudyUseCases:
         metadata = self._read(self._file_store.read_metadata, study_id)
         try:
             self._save_metadata(study_id, metadata, status=PROCESSING, error=None,
-                                progress=None, stage_statuses={}, metrics={},
+                                progress=None, stage_statuses={}, stage_details={}, metrics={},
                                 statistics={}, result_files={})
             for stage in ((1, 2, 3, 4) if self._pipeline is not None else (2,)):
                 self._record_stage(study_id, stage, "waiting")
@@ -299,12 +302,20 @@ class StudyUseCases:
         metadata = self._read(self._file_store.read_metadata, study_id)
         stage_statuses = dict(metadata.get("stage_statuses", {}))
         stage_statuses[str(stage)] = event
+        stage_details = dict(metadata.get("stage_details", {}))
+        details = dict(stage_details.get(str(stage), {}))
+        if event == "start":
+            details["started_at"] = datetime.now().isoformat()
+        elif event in ("success", "error"):
+            details["finished_at"] = datetime.now().isoformat()
+        stage_details[str(stage)] = details
         progress = metadata.get("progress")
         if event != "waiting":
             progress = {"stage": stage, "event": event,
                         "name": (data or {}).get("name"),
                         "completed_stages": sum(value == "success" for value in stage_statuses.values())}
-        self._save_metadata(study_id, metadata, stage_statuses=stage_statuses, progress=progress)
+        self._save_metadata(study_id, metadata, stage_statuses=stage_statuses,
+                            stage_details=stage_details, progress=progress)
         if self._stages is None:
             return
         if event == "waiting":
@@ -329,6 +340,15 @@ class StudyUseCases:
 
     def get_volume_npy(self, study_id: str) -> bytes:
         return self._read(self._file_store.read_volume_bytes, study_id)
+
+    def get_mesh_glb(self, study_id: str, name: str) -> bytes:
+        keys = {"organ.glb": "organ_glb", "tumor.glb": "tumor_glb"}
+        if name not in keys:
+            raise StudyNotFound(study_id)
+        metadata = self._read(self._file_store.read_metadata, study_id)
+        if metadata["status"] != COMPLETED or not metadata.get("result_files", {}).get(keys[name]):
+            raise StudyNotFound(study_id)
+        return self._read(lambda identifier: self._file_store.read_mesh(identifier, name), study_id)
 
     def get_results(self, study_id: str) -> dict[str, Any]:
         """Return the study status, metrics and artifact references."""

@@ -66,6 +66,12 @@ class LegacyFileStoreAdapter:
     def save_volume(self, study_id: str, volume: np.ndarray) -> None:
         self._legacy_store.guardar_volumen(study_id, volume)
 
+    def save_mesh(self, study_id: str, name: str, content: bytes) -> str:
+        return self._legacy_store.save_mesh(study_id, name, content)
+
+    def read_mesh(self, study_id: str, name: str) -> bytes:
+        return self._read(lambda identifier: self._legacy_store.read_mesh(identifier, name), study_id)
+
     def read_volume(self, study_id: str) -> np.ndarray:
         return self._read(self._legacy_store.leer_volumen, study_id)
 

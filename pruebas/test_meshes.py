@@ -5,6 +5,7 @@ import unittest
 import numpy as np
 
 from servicio.logica.tuberia.meshes import EN42MeshGenerator
+from pruebas.lung_phantom import lung_phantom
 
 
 class MeshTests(unittest.TestCase):
@@ -15,8 +16,7 @@ class MeshTests(unittest.TestCase):
         except ImportError:
             self.skipTest("Mesh dependencies are not installed")
         self.trimesh = trimesh
-        self.volume = np.zeros((32, 32, 32), dtype=np.float32)
-        self.volume[4:28, 4:28, 4:28] = 0.8
+        self.volume = lung_phantom()
 
     def test_empty_tumor_exports_empty_scene(self):
         generator = EN42MeshGenerator()
@@ -28,10 +28,14 @@ class MeshTests(unittest.TestCase):
         organ = self.trimesh.load(io.BytesIO(result.organ_glb), file_type="glb")
         self.assertTrue(organ.geometry)
         self.assertFalse(generator.last_metrics["tumor"]["has_lesion"])
+        self.assertEqual(generator.last_metrics["organ"]["segmentation"]["mask_method"],
+                         "en42_internal_lung_air_v1")
+        self.assertLess(generator.last_metrics["organ"]["mask_voxels"],
+                        (self.volume > 0.05).sum() / 2)
 
     def test_nonempty_tumor_exports_surface(self):
         mask = np.zeros_like(self.volume)
-        mask[12:20, 12:20, 12:20] = 1
+        mask[19:22, 31:34, 31:34] = 1
         result = EN42MeshGenerator().generate(self.volume, mask)
         tumor = self.trimesh.load(io.BytesIO(result.tumor_glb), file_type="glb")
         self.assertTrue(tumor.geometry)

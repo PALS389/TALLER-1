@@ -1,4 +1,4 @@
-export const G = 64;
+export const G = 128;
 
 export async function leerNpy(file) {
   const buf = await file.arrayBuffer();
@@ -9,7 +9,8 @@ export async function leerNpy(file) {
   const ini = (v1 ? 10 : 12);
   const cab = new TextDecoder().decode(u8.slice(ini, ini + hlen));
   if (!/'descr':\s*'<f4'/.test(cab)) throw new Error("se espera float32");
-  if (!/\(64,\s*64\)/.test(cab)) throw new Error("tamaño distinto de 64×64");
+  if (!/\(128,\s*128\)/.test(cab)) throw new Error("Expected a 128x128 image");
+  if (/'fortran_order':\s*True/.test(cab)) throw new Error("Expected a C-order array");
   return new Float32Array(buf.slice(ini + hlen, ini + hlen + G * G * 4));
 }
 
@@ -17,7 +18,7 @@ export function leerPng(file) {
   return new Promise((ok, mal) => {
     const img = new Image();
     img.onload = () => {
-      if (img.width !== G || img.height !== G) return mal(new Error("tamaño distinto de 64×64"));
+      if (img.width !== G || img.height !== G) return mal(new Error("Expected a 128x128 image"));
       const c = document.createElement("canvas"); c.width = c.height = G;
       const ctx = c.getContext("2d"); ctx.drawImage(img, 0, 0);
       const d = ctx.getImageData(0, 0, G, G).data;

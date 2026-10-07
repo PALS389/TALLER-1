@@ -57,6 +57,18 @@ class PipelineTests(unittest.TestCase):
             self.execute()
         self.assertEqual(self.events[-2:], [(4, "start"), (4, "error")])
 
+    def test_invalid_lung_mask_stops_before_mesh_storage(self):
+        from servicio.logica.tuberia.lung_mask import InvalidLungMask
+
+        def reject(*args):
+            raise InvalidLungMask("No plausible lung mask")
+        self.generator.generate = reject
+        with self.assertRaises(InvalidLungMask):
+            self.execute()
+        self.assertEqual(self.events[-2:], [(4, "start"), (4, "error")])
+        self.assertNotIn("organ.glb", self.files)
+        self.assertNotIn("tumor.glb", self.files)
+
     def test_invalid_confidence_stops_before_meshes(self):
         self.segmenter.segment = lambda v: SegmentationResult(v, float("nan"))
         with self.assertRaises(ValueError):
