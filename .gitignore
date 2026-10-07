@@ -4,3 +4,5 @@ datos/
 estudios/
 modelos/*.pth
 almacenamiento/
+.env
+__pycache__/
