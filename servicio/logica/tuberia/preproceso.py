@@ -1,48 +1,65 @@
 """
-Capa 2 · Tubería · Etapa 1: Preproceso.
+Layer 2 - Pipeline - Stage 1: Preprocessing.
 
-Convierte cada radiografía tal como se subió (bytes de un .png o .npy) en una
-matriz 64x64 float32 y rechaza la que no sea válida, identificando el archivo.
+Convert an uploaded PNG or NPY radiograph into a float32 projection and
+identify invalid files in validation errors.
 """
 import io
 
 import numpy as np
 from PIL import Image
 
-from ...config import ESCALA_PNG, FORMATOS, TAM
+from ...config import ESCALA_PNG as PNG_SCALE, FORMATOS as SUPPORTED_FORMATS, GRID_SIZE
 
 
-class ImagenInvalida(ValueError):
-    """Error con el nombre del archivo rechazado, para mostrarlo al médico."""
+class InvalidImage(ValueError):
+    """Validation error identifying the rejected file."""
 
-    def __init__(self, archivo: str, motivo: str):
-        super().__init__(f"{archivo}: {motivo}")
-        self.archivo = archivo
-        self.motivo = motivo
+    def __init__(self, filename: str, reason: str):
+        super().__init__(f"{filename}: {reason}")
+        self.filename = filename
+        self.reason = reason
 
 
-def leer_proyeccion(nombre: str, contenido: bytes) -> np.ndarray:
-    """Convierte los bytes de un archivo .png o .npy en una matriz 64x64 float32."""
-    ext = ("." + nombre.rsplit(".", 1)[-1].lower()) if "." in nombre else ""
-    if ext not in FORMATOS:
-        raise ImagenInvalida(nombre, f"formato '{ext or 'sin extensión'}' no admitido "
-                                     f"(se aceptan {', '.join(FORMATOS)})")
+def read_projection(filename: str, content: bytes) -> np.ndarray:
+    """Convert PNG or NPY bytes into a float32 projection of the configured size."""
+    ext = ("." + filename.rsplit(".", 1)[-1].lower()) if "." in filename else ""
+    if ext not in SUPPORTED_FORMATS:
+        raise InvalidImage(filename, f"unsupported format '{ext or 'no extension'}' "
+                                    f"(accepted: {', '.join(SUPPORTED_FORMATS)})")
     try:
         if ext == ".npy":
-            arr = np.load(io.BytesIO(contenido), allow_pickle=False)
+            arr = np.load(io.BytesIO(content), allow_pickle=False)
         else:
-            img = Image.open(io.BytesIO(contenido))
+            img = Image.open(io.BytesIO(content))
             if img.mode not in ("I;16", "I;16B", "I", "L"):
                 img = img.convert("L")
             arr = np.array(img)
-            # PNG de 16 bits: se recupera el valor original dividiendo entre la escala
-            arr = arr.astype(np.float32) / (ESCALA_PNG if arr.dtype != np.uint8 else 1.0)
-    except Exception as exc:  # archivo dañado o que no es imagen
-        raise ImagenInvalida(nombre, f"no se pudo leer ({exc.__class__.__name__})")
+            # Recover original values from scaled 16-bit PNGs.
+            arr = arr.astype(np.float32) / (PNG_SCALE if arr.dtype != np.uint8 else 1.0)
+    except Exception as exc:
+        raise InvalidImage(filename, f"could not read image ({exc.__class__.__name__})")
 
     arr = np.asarray(arr, dtype=np.float32)
-    if arr.shape != (TAM, TAM):
-        raise ImagenInvalida(nombre, f"tamaño {arr.shape}, se esperaba ({TAM}, {TAM})")
+    if arr.shape != (GRID_SIZE, GRID_SIZE):
+        raise InvalidImage(filename, f"shape {arr.shape}; expected ({GRID_SIZE}, {GRID_SIZE})")
     if not np.isfinite(arr).all():
-        raise ImagenInvalida(nombre, "contiene valores no numéricos")
+        raise InvalidImage(filename, "contains non-finite values")
     return arr
+
+
+class ProjectionPreprocessor:
+    """Prepare decoded projections without changing EN-1's calibrated scale."""
+
+    method = "validated_float32_projections"
+
+    def execute(self, projections: np.ndarray) -> np.ndarray:
+        expected_shape = (4, GRID_SIZE, GRID_SIZE)
+        if np.iscomplexobj(projections):
+            raise ValueError("Projections must contain real values.")
+        array = np.array(projections, dtype=np.float32, order="C", copy=True)
+        if array.shape != expected_shape:
+            raise ValueError(f"Expected projections {expected_shape}, received {array.shape}.")
+        if not np.isfinite(array).all():
+            raise ValueError("Projections must contain finite values.")
+        return array

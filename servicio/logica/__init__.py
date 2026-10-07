@@ -1,1 +1,1 @@
-"""Capa 2 · Lógica de negocio: casos de uso y tubería de procesamiento."""
+"""Layer 2: business use cases and the processing pipeline."""
