@@ -1,0 +1,1 @@
+"""Capa 3 · Persistencia · Repositories, one per entity of the data model."""
